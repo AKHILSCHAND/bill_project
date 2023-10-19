@@ -2,14 +2,10 @@ from decimal import Decimal
 from django.db import models
 
 # Create your models here.
-class Party(models.Model):
-    party_id = models.PositiveIntegerField(unique=True)
 
-    def __str__(self):
-        return str(self.party_id)
 
 class Bill(models.Model):
-    party_id = models.ForeignKey(Party, on_delete=models.CASCADE)
+    party_id = models.IntegerField()
     bill_number = models.IntegerField(unique=True)
     bill_date = models.DateField(null=True, blank=True)
     bill_amount = models.DecimalField(max_digits=10, decimal_places=2)
