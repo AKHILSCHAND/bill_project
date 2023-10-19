@@ -51,7 +51,7 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th scope="col">Bill ID</th>
+                        <th scope="col"> ID</th>
                         <th scope="col">Party ID</th>
                         <th scope="col">Bill Number</th>
                         <th scope="col">Bill Date</th>
@@ -62,7 +62,7 @@
                 <tbody>
                     {% for bill in unpaid_bills %}
                     <tr>
-                        <td>{{ bill.id }}</td>
+                        <td>{{ forloop.counter }}</td>
                         <td>{{ bill.party_id }}</td>
                         <td>{{ bill.bill_number }}</td>
                         <td>{{ bill.bill_date }}</td>
@@ -108,7 +108,7 @@
                     </div>
                     <div class="form-group mt-3">
                         <label for="payment_remarks">Payment Remarks</label>
-                        <input required type="text" name="payment_remarks" class="form-control">
+                        <input type="text" name="payment_remarks" class="form-control">
                     </div>
                 </div>
                 <div class="modal-footer">
