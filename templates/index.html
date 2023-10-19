@@ -26,20 +26,28 @@
                 </div>
                 {% endfor %}
             </div>
+            
             <a href="{% url 'index' %}" style="text-decoration: none;"><h2 class="text-center text-white bg-primary p-3">Billing Details</h2></a>
             <div class="d-flex mb-3 justify-content-between align-items-center">
                 <a href="#" data-bs-toggle="modal" data-bs-target="#addNewBill" class="btn btn-primary px-3 btn-sm">Add New Bill</a>
                 <form method="get">
                     <input type="date" name="start_date" placeholder="Start Date" value="{{ request.GET.start_date }}">
                     <input type="date" name="end_date" placeholder="End Date"value="{{ request.GET.end_date }}">
-                    <input type="text" name="party_id" placeholder="Party ID" value="{{ request.GET.party_id }}">
-                    <input type="number" name="due_days" placeholder="Bills Due by X Days" value="{{ request.GET.due_days }}">
-                    <input type="hidden" name="filter_submitted" value="1">
-                    <button type="submit">Apply Filters</button>
-                    {% if request.GET.filter_submitted %}
-                    <button ><a  href="{% url 'index' %}"  style="text-decoration: none; color: black;">Remove Filter</a></button>
                     
-                {% endif %}
+                    <input type="number" name="due_days" placeholder="Bills Due by X Days" value="{{ request.GET.due_days }}">
+                    
+                    <button type="submit">Apply Filters</button>
+                    &nbsp; 
+                    <a href="{% url 'index' %}" class="refresh-link" data-toggle="tooltip" data-placement="bottom" title="Refresh filter">
+                        <i class="fas fa-sync"></i>
+                      </a>
+                      &nbsp; 
+                    <select name="party_id">
+                        <option value="">All Parties</option>
+                        {% for party in parties %}
+                            <option value="{{ party.id }}">{{ party.party_id }}</option>
+                        {% endfor %}
+                    </select>
                 </form>
                 
                 <a href="{% url 'unpaid_bills' %}" class="btn btn-primary px-3 btn-sm">unpaid bills</a>
