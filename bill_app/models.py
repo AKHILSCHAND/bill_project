@@ -4,9 +4,12 @@ from django.db import models
 # Create your models here.
 class Party(models.Model):
     party_id = models.PositiveIntegerField(unique=True)
+    party_name = models.CharField(max_length=100)
+    contact_information = models.EmailField()
+    address = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return str(self.party_id)
+        return self.party_name
 
 class Bill(models.Model):
     party_id = models.ForeignKey(Party, on_delete=models.CASCADE)

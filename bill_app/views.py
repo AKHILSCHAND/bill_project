@@ -8,7 +8,7 @@ from datetime import date, timedelta
 from django.utils import timezone
 
 
-def index(request):
+def bill(request):
     bills = Bill.objects.all()
     parties = Party.objects.all() 
 
@@ -19,22 +19,21 @@ def index(request):
             bill_date = request.POST.get("bill_date")
             bill_amount = request.POST.get("bill_amount")
             paid_amount = request.POST.get("paid_amount")
-            bill_file = request.FILES["bill"]  
-            
+            bill_file = request.FILES["bill"]
+
             # Check if a party with the given party_id exists
             party, created = Party.objects.get_or_create(party_id=party_id)
-            
-            if Bill.objects.filter(bill_number=bill_number).exists():
-                messages.warning(request, f"Warning: Bill with the same bill number ({bill_number}) already exists.")
-            else:
-                Bill.objects.create(
+
+            # Create a new bill
+            Bill.objects.create(
                 party_id=party,
                 bill_number=bill_number,
                 bill_date=bill_date,
                 bill_amount=bill_amount,
                 paid_amount=paid_amount,
                 bill_file=bill_file,
-                )
+            )
+
             if created:
                 messages.success(request, f"Party with Id {party_id} and Bill added successfully.")
             else:
@@ -47,32 +46,28 @@ def index(request):
             bill_date = request.POST.get("bill_date")
             bill_amount = request.POST.get("bill_amount")
             paid_amount = request.POST.get("paid_amount")
-            
+
             if "bill" in request.FILES:
                 bill_file = request.FILES["bill"]
             else:
                 existing_bill = Bill.objects.get(id=id)
                 bill_file = existing_bill.bill_file
 
-            party, created = Party.objects.get_or_create(party_id=party_id)
-            
-            party = Party.objects.get(party_id=party_id)
-            
             bill = Bill.objects.get(id=id)
-            bill.party_id = party
+            bill.party_id = party_id
             bill.bill_number = bill_number
             bill.bill_date = bill_date
             bill.bill_amount = bill_amount
             bill.paid_amount = paid_amount
             bill.bill_file = bill_file
-            
+
             bill.save()
             messages.info(request, "Bill updated successfully")
-            
+
         elif "delete" in request.POST:
             id = request.POST.get("id")
             Bill.objects.get(id=id).delete()
-            messages.success(request, "Bill deleted successfully")
+            messages.success(request, "Bill deleted successfully")         
 
     
     # Range filter
@@ -95,9 +90,9 @@ def index(request):
     
     
     if due_days:
-        today = date.today() 
-        due_date_ = today + timedelta(days=int(due_days))
-        bills = bills.filter(bill_date__range=[today, due_date_])
+        today = date.today()
+        due_date = today - timedelta(days=int(due_days))
+        bills = bills.filter(bill_date__lte=due_date)
         # print(today)
         # print(due_date_)
     context ={
@@ -105,7 +100,7 @@ def index(request):
             "parties": parties,
             }
     
-    return render(request, "index.html", context)
+    return render(request, "bill.html", context)
 
 
 def unpaid_bills(request):
@@ -123,13 +118,13 @@ def unpaid_bills(request):
             except Bill.DoesNotExist:
                 messages.error(request, "Bill not found")
                 # messages.error(request, f"Bill not found for ID: {bill_id}")
-                return redirect('index')
+                return redirect('bill')
 
             try:
                 payment_amount = Decimal(payment_amount)
             except ValueError:
                 messages.error(request, "Invalid payment amount")
-                return redirect('index')
+                return redirect('bill')
 
             new_paid_amount = bill.paid_amount + payment_amount
 
@@ -169,13 +164,13 @@ def make_payment(request):
                     bill = Bill.objects.get(id=bill_id)
                 except Bill.DoesNotExist:
                     messages.error(request, "Bill not found")
-                    return redirect('index')
+                    return redirect('bill')
 
                 try:
                     payment_amount = Decimal(payment_amount)
                 except ValueError:
                     messages.error(request, "Invalid payment amount")
-                    return redirect('index')
+                    return redirect('bill')
 
                 new_paid_amount = bill.paid_amount + payment_amount
 
@@ -203,3 +198,55 @@ def payment_details(request):
     payment_details = Payment.objects.all()
     context = {"payment_details": payment_details}
     return render(request, 'payment_details.html', context)
+
+
+
+def home(request):
+    parties = Party.objects.all() 
+
+    if request.method == "POST":
+        if "create" in request.POST:
+            party_id = request.POST.get("party_id")
+            party_name = request.POST.get("party_name")
+            contact_information = request.POST.get("contact_information")
+            address = request.POST.get("address")
+            
+            party, created = Party.objects.get_or_create(party_id=party_id)
+            
+            if not created:
+                messages.warning(request, f"Warning: Party with the same party ID ({party_id}) already exists.")
+            else:
+                party.party_name = party_name
+                party.contact_information = contact_information
+                party.address = address
+                party.save()
+                messages.success(request, f"{party_name} added successfully.")
+            return redirect('home')
+    
+        if "search" in request.POST:
+            party_id = request.POST.get("party_id")  
+            try:
+                party = Party.objects.get(party_id=party_id)
+                
+                
+                
+                bills = Bill.objects.filter(party_id=party)
+                # print(bills)
+
+                context = {
+                    'party': party,
+                    'bills': bills
+                }
+                
+                return render(request, 'home.html', context)
+            except Party.DoesNotExist:
+                
+                messages.warning(request, f"Party with ID ({party_id}) not found. ")
+
+
+    context = {
+        "parties": parties,
+    }
+    return render(request, 'home.html', context)
+
+
