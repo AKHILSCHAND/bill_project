@@ -8,6 +8,8 @@ from datetime import date, timedelta
 from django.utils import timezone
 
 
+# Bills 
+
 def bill(request):
     bills = Bill.objects.all()
     parties = Party.objects.all() 
@@ -102,6 +104,7 @@ def bill(request):
     
     return render(request, "bill.html", context)
 
+# Unpaid Bills
 
 def unpaid_bills(request):
     bills = Bill.objects.all()
@@ -200,6 +203,7 @@ def payment_details(request):
     return render(request, 'payment_details.html', context)
 
 
+# Home
 
 def home(request):
     parties = Party.objects.all() 
@@ -250,3 +254,44 @@ def home(request):
     return render(request, 'home.html', context)
 
 
+
+# Aging
+
+def party_billing_aging(request, party_id):
+  
+    party = Party.objects.get(party_id=party_id)
+    bills = Bill.objects.filter(party_id=party)
+
+    today = date.today()
+
+    aging_data = []
+
+    for bill in bills:
+        bill_age = (today - bill.bill_date).days
+
+        # Categorize bills based on their age
+        if bill_age < 30:
+            age_category = 'Less than 30 days'
+        elif 30 <= bill_age <= 60:
+            age_category = '31 to 60 days'
+        elif 61 <= bill_age <= 90:
+            age_category = '61 to 90 days'
+        else:
+            age_category = 'Greater than 90 days'
+
+        aging_entry = {
+            'bill_date': bill.bill_date,
+            'bill_number': bill.bill_number,
+            'party_name': party.party_name,
+            'amount': bill.bill_amount,
+            'age_category': age_category,
+        }
+        aging_data.append(aging_entry)
+        # print(aging_entry)
+        # print(aging_data)
+    context = {
+        'party': party,
+        'aging_data': aging_data,
+    }
+
+    return render(request, 'party_billing_aging.html', context)

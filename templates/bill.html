@@ -75,6 +75,7 @@
                 <thead>
                     <tr>
                         <th scope="col">ID</th>
+                        <th scope="col">Party Name</th>
                         <th scope="col">Bill Number</th>
                         <th scope="col">Bill Date</th>
                         <th scope="col">Bill Amount</th>
@@ -88,6 +89,7 @@
                     {% for bill in bills %}
                     <tr>
                         <th>{{ forloop.counter }}</th>
+                        <td>{{ bill.party_id.party_name }}</td>
                         <td>{{ bill.bill_number }}</td>
                         <td>{{ bill.bill_date }}</td>
                         <td>{{ bill.bill_amount }}</td>
