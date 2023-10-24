@@ -257,40 +257,50 @@ def home(request):
 
 # Aging
 
-def party_billing_aging(request, party_id):
-  
-    party = Party.objects.get(party_id=party_id)
-    bills = Bill.objects.filter(party_id=party)
+def party_billing_aging(request):
+    party_id = request.GET.get('party_id')
 
-    today = date.today()
+    parties = Party.objects.all()
+    aging_data = {}
 
-    aging_data = []
+    if party_id:
+        selected_party = Party.objects.get(id=party_id)
+        bills = Bill.objects.filter(party_id=party_id)  
 
-    for bill in bills:
-        bill_age = (today - bill.bill_date).days
+        # Calculate aging data 
+        total_bills = 0
+        less_than_30 = 0
+        from_31_to_60 = 0
+        from_61_to_90 = 0
+        greater_than_90 = 0
+        net_amount_due = 0
 
-        # Categorize bills based on their age
-        if bill_age < 30:
-            age_category = 'Less than 30 days'
-        elif 30 <= bill_age <= 60:
-            age_category = '31 to 60 days'
-        elif 61 <= bill_age <= 90:
-            age_category = '61 to 90 days'
-        else:
-            age_category = 'Greater than 90 days'
+        today = date.today()
+        
+        for bill in bills:
+            bill_age = (today - bill.bill_date).days
+            total_bills += 1
+            if bill_age < 30:
+                less_than_30 += (bill.bill_amount - bill.paid_amount)
+            elif 30 <= bill_age <= 60:
+                from_31_to_60 += (bill.bill_amount - bill.paid_amount)
+            elif 61 <= bill_age <= 90:
+                from_61_to_90 += (bill.bill_amount - bill.paid_amount)
+            else:
+                greater_than_90 += (bill.bill_amount - bill.paid_amount)
+            net_amount_due += (bill.bill_amount - bill.paid_amount)
 
-        aging_entry = {
-            'bill_date': bill.bill_date,
-            'bill_number': bill.bill_number,
-            'party_name': party.party_name,
-            'amount': bill.bill_amount,
-            'age_category': age_category,
+        aging_data[selected_party.party_name] = {
+            'total_bills': total_bills,
+            'less_than_30': less_than_30,
+            'from_31_to_60': from_31_to_60,
+            'from_61_to_90': from_61_to_90,
+            'greater_than_90': greater_than_90,
+            'net_amount_due': net_amount_due,
         }
-        aging_data.append(aging_entry)
-        # print(aging_entry)
-        # print(aging_data)
     context = {
-        'party': party,
+        # 'party_id': party_id,
+        'parties': parties,
         'aging_data': aging_data,
     }
 

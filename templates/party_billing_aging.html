@@ -13,65 +13,60 @@
         crossorigin="anonymous"
     />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <title>Aging Page</title>
+    <title>Aging </title>
 </head>
 <body>
-   
-    <div class="container mt-5">
-        <div class="row">
-            <div class= mt-3>    
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    <strong>{{ message }}</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                {% endfor %}
-            </div>
-            <div class="d-flex mb-3 justify-content-start align-items-center">
-                <a href="{% url 'home' %}" class="btn btn-primary px-3 btn-sm">back</a>
-            </div>
-            <h2>Bill Aging Report for {{ party.party_name }}</h2>
-            <h2 class="text-center text-white bg-primary p-3">Aging Details</h2></a>
-            
-      
-            
-
-
-            <table class="table">
-                <tr>
-                    <th>Bill Date</th>
-                    <th>Bill Number</th>
-                    <th>Party Name</th>
-         
-                    <th>Less than 30 days</th>
-                    <th>31 to 60 days</th>
-                    <th>61 to 90 days</th>
-                    <th>Greater than 90 days</th>
-                </tr>
-                {% for entry in aging_data %}
-                    <tr>
-                        <td>{{ entry.bill_date }}</td>
-                        <td>{{ entry.bill_number }}</td>
-                        <td>{{ entry.party_name }}</td>
-                        <td>{% if entry.age_category == 'Less than 30 days' %}{{ entry.amount }}{% else %}0{% endif %}</td>
-                        <td>{% if entry.age_category == '31 to 60 days' %}{{ entry.amount }}{% else %}0{% endif %}</td>
-                        <td>{% if entry.age_category == '61 to 90 days' %}{{ entry.amount }}{% else %}0{% endif %}</td>
-                        <td>{% if entry.age_category == 'Greater than 90 days' %}{{ entry.amount }}{% else %}0{% endif %}</td>
-                    </tr>
-                {% endfor %}
-            </table>
-
-            
-
+    
+<div class="container mt-5">
+    <div class="row">
+        <div class="d-flex mb-3 justify-content-start align-items-center">
+            <a href="{% url 'home' %}" class="btn btn-primary px-3 btn-sm">Back</a>
         </div>
+        <h2 class="text-center text-white bg-primary p-3">Party Aging Details</h2>
+        <form method="get">
+            <div class="d-flex mb-3 justify-content-between align-items-center">
+                <label for="party_id">Select Party:</label>
+                <select name="party_id">
+                    <option value="">Select Parties</option>
+                    {% for party in parties %}
+                        <option value="{{ party.id }}">{{ party.party_id }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary px-3 btn-sm">Apply Filter</button>
+            </div>
+        </form>
+        
+        {% if aging_data %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Party Name</th>
+                        <th scope="col">Total Bills</th>
+                        <th scope="col">Less than 30 days</th>
+                        <th scope="col">31 to 60 days</th>
+                        <th scope="col">61 to 90 days</th>
+                        <th scope="col">Greater than 90 days</th>
+                        <th scope="col">Net Amount Due</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for party_name, aging in aging_data.items %}
+                        <tr>
+                            <td>{{ party_name }}</td>
+                            <td>{{ aging.total_bills }}</td>
+                            <td>{{ aging.less_than_30 }}</td>
+                            <td>{{ aging.from_31_to_60 }}</td>
+                            <td>{{ aging.from_61_to_90 }}</td>
+                            <td>{{ aging.greater_than_90 }}</td>
+                            <td>{{ aging.net_amount_due }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Select a party to view aging details.</p>
+        {% endif %}
     </div>
 </div>
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
-
-
