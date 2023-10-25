@@ -258,16 +258,15 @@ def home(request):
 # Aging
 
 def party_billing_aging(request):
-    party_id = request.GET.get('party_id')
-
     parties = Party.objects.all()
     aging_data = {}
 
+    party_id = request.GET.get('party_id')  
     if party_id:
-        selected_party = Party.objects.get(id=party_id)
-        bills = Bill.objects.filter(party_id=party_id)  
+        party = Party.objects.get(id=party_id)
+        
+        bills = Bill.objects.filter(party_id=party_id)
 
-        # Calculate aging data 
         total_bills = 0
         less_than_30 = 0
         from_31_to_60 = 0
@@ -276,7 +275,7 @@ def party_billing_aging(request):
         net_amount_due = 0
 
         today = date.today()
-        
+
         for bill in bills:
             bill_age = (today - bill.bill_date).days
             total_bills += 1
@@ -290,7 +289,7 @@ def party_billing_aging(request):
                 greater_than_90 += (bill.bill_amount - bill.paid_amount)
             net_amount_due += (bill.bill_amount - bill.paid_amount)
 
-        aging_data[selected_party.party_name] = {
+        aging_data[party.party_name] = {
             'total_bills': total_bills,
             'less_than_30': less_than_30,
             'from_31_to_60': from_31_to_60,
@@ -298,8 +297,44 @@ def party_billing_aging(request):
             'greater_than_90': greater_than_90,
             'net_amount_due': net_amount_due,
         }
+    else:
+        
+        for party in parties:
+            party_id = party.id
+            bills = Bill.objects.filter(party_id=party_id)
+
+            total_bills = 0
+            less_than_30 = 0
+            from_31_to_60 = 0
+            from_61_to_90 = 0
+            greater_than_90 = 0
+            net_amount_due = 0
+
+            today = date.today()
+
+            for bill in bills:
+                bill_age = (today - bill.bill_date).days
+                total_bills += 1
+                if bill_age < 30:
+                    less_than_30 += (bill.bill_amount - bill.paid_amount)
+                elif 30 <= bill_age <= 60:
+                    from_31_to_60 += (bill.bill_amount - bill.paid_amount)
+                elif 61 <= bill_age <= 90:
+                    from_61_to_90 += (bill.bill_amount - bill.paid_amount)
+                else:
+                    greater_than_90 += (bill.bill_amount - bill.paid_amount)
+                net_amount_due += (bill.bill_amount - bill.paid_amount)
+
+            aging_data[party.party_name] = {
+                'total_bills': total_bills,
+                'less_than_30': less_than_30,
+                'from_31_to_60': from_31_to_60,
+                'from_61_to_90': from_61_to_90,
+                'greater_than_90': greater_than_90,
+                'net_amount_due': net_amount_due,
+            }
     context = {
-        # 'party_id': party_id,
+        'party_id': party_id,  
         'parties': parties,
         'aging_data': aging_data,
     }
